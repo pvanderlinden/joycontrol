@@ -15,7 +15,7 @@ def _print_doc(string):
     Attempts to remove common white space at the start of the lines in a doc string
     to unify the output of doc strings with different indention levels.
 
-    Keeps whitespace lines intact.
+    Keeps whitespace lines intact.add_command
 
     :param fun: function to print the doc string of
     """
@@ -85,7 +85,8 @@ class CLI:
                         if result:
                             print(result)
                     except Exception as e:
-                        print(e)
+                        logger.info('boom')
+                        # print(e)
                 else:
                     print('command', cmd, 'not found, call help for help.')
 

@@ -7,8 +7,13 @@ class FlashMemory:
         :param size of the memory dump, should be constant
         """
         if spi_flash_memory_data is None:
-            spi_flash_memory_data = [0xFF] * size  # Blank data is all 0xFF
+            spi_flash_memory_data = [0x00] * size  # Blank data is all 0xFF
             default_stick_cal = True
+            spi_flash_memory_data[0x601B] = 0x01
+            spi_flash_memory_data[0x6050:0x6053] = [0xFF, 0x00, 0x00]  # body
+            spi_flash_memory_data[0x6053:0x6056] = [0x00, 0xFF, 0x00]  # buttons
+            spi_flash_memory_data[0x6056:0x6059] = [0x00, 0x00, 0xFF]  # left
+            spi_flash_memory_data[0x6059:0x605C] = [0xFF, 0xFF, 0xFF]  # right
 
         if len(spi_flash_memory_data) != size:
             raise ValueError(f'Given data size {len(spi_flash_memory_data)} does not match size {size}.')

@@ -40,6 +40,8 @@ class L2CAP_Transport(asyncio.Transport):
         self._read_thread = None
         self._is_reading.set()
         self.start_reader()
+        # self._wrote = 0
+        # self._wrote_start = 0
 
     async def _reader(self):
         while True:
@@ -97,7 +99,6 @@ class L2CAP_Transport(asyncio.Transport):
         """
         await self._is_reading.wait()
         data = await self._loop.sock_recv(self._itr_sock, self._read_buffer_size)
-
         # logger.debug(f'received "{list(data)}"')
 
         if not data:
@@ -141,16 +142,35 @@ class L2CAP_Transport(asyncio.Transport):
         else:
             _bytes = bytes(data)
 
+        _size = len(_bytes)
+        if _size > getattr(self, '_max_size', 0):
+            self._max_size = _size
+            print('size', _size)
+
+        # import time
+        # try:
+        #     seconds = time.time() - self._wrote_start
+        #     if self._wrote_start == 0 or seconds > 5:
+        #         # print(self._wrote, self._wrote / seconds)
+        #         self._wrote_start = time.time()
+        #         self._wrote = 0
+        # except Exception:
+        #     logger.exception('boom')
+
         if self._capture_file is not None:
             # write data to log file
             _time = struct.pack('d', time.time())
             size = struct.pack('i', len(_bytes))
             self._capture_file.write(_time + size + _bytes)
 
-        # logger.debug(f'sending "{_bytes}"')
+        # # logger.debug(f'sending "{_bytes}"')
+        # self._wrote += len(_bytes)
 
         try:
+            start=time.time()
             await self._loop.sock_sendall(self._itr_sock, _bytes)
+            if time.time()-start > 0.3:
+                print('{:.3f}'.format((time.time()-start)*1000))
         except OSError as err:
             logger.error(err)
             self._protocol.connection_lost()
